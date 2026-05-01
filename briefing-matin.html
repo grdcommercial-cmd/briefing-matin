@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Briefing Matin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d1117;
+    --paper: #f5f0e8;
+    --accent: #c8341a;
+    --gold: #c9a84c;
+    --muted: #7a7265;
+    --card: #fffef9;
+    --rule: #e0d8cc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 28px 20px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 4px
+    );
+  }
+
+  .header-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+  }
+
+  .header-date {
+    font-size: 12px;
+    color: rgba(245,240,232,0.55);
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+
+  /* ── RULE ORNAMENT ── */
+  .ornament {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    background: var(--ink);
+  }
+  .ornament-line { flex: 1; height: 1px; background: rgba(245,240,232,0.15); }
+  .ornament-dot { width: 5px; height: 5px; background: var(--gold); border-radius: 50%; }
+
+  /* ── GENERATE BUTTON ── */
+  .gen-zone {
+    padding: 24px 20px;
+    text-align: center;
+  }
+
+  .btn-generate {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 14px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    width: 100%;
+    max-width: 340px;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 auto;
+  }
+  .btn-generate:active { opacity: 0.8; }
+  .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-icon { font-size: 18px; }
+
+  /* ── LOADING ── */
+  .loading-zone {
+    display: none;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .loading-zone.visible { display: block; }
+
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2px solid var(--rule);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* ── BRIEFING CONTENT ── */
+  #briefing {
+    display: none;
+    padding: 0 0 40px;
+    animation: fadeIn 0.6s ease forwards;
+  }
+  #briefing.visible { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+  /* Section headers */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 20px 12px;
+    border-top: 1px solid var(--rule);
+  }
+  .section-header:first-child { border-top: none; }
+
+  .section-icon {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .icon-world  { background: #1a2e4a; }
+  .icon-france { background: #1a3a1a; }
+  .icon-tech   { background: #2a1a3a; }
+
+  .section-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  /* News items */
+  .news-list { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
+
+  .news-item {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .news-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .world  .news-item::before { background: #1a5fa8; }
+  .france .news-item::before { background: #2d8a2d; }
+  .tech   .news-item::before { background: #7c3aed; }
+
+  .news-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--ink);
+    margin-bottom: 5px;
+  }
+
+  .news-summary {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .news-tag {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+    color: #fff;
+  }
+  .world  .news-tag { background: #1a5fa8; }
+  .france .news-tag { background: #2d8a2d; }
+  .tech   .news-tag { background: #7c3aed; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 16px 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── ERROR ── */
+  .error-box {
+    display: none;
+    margin: 20px;
+    padding: 16px;
+    background: #fff0ee;
+    border: 1px solid #f5c6bc;
+    border-radius: 6px;
+    color: var(--accent);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .error-box.visible { display: block; }
+
+  /* ── AUTO-LOAD banner ── */
+  .auto-banner {
+    background: #f0f7f0;
+    border-bottom: 1px solid #c8e6c9;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: #2d6a2d;
+    text-align: center;
+    display: none;
+  }
+  .auto-banner.visible { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Édition quotidienne</div>
+  <div class="header-title">Le Briefing</div>
+  <div class="header-date" id="headerDate">Chargement…</div>
+</header>
+<div class="ornament">
+  <div class="ornament-line"></div>
+  <div class="ornament-dot"></div>
+  <div class="ornament-line"></div>
+  <div class="ornament-dot"></div>
+  <div class="ornament-line"></div>
+</div>
+
+<div class="auto-banner" id="autoBanner">
+  ✅ Chargement automatique du matin activé
+</div>
+
+<div class="gen-zone" id="genZone">
+  <button class="btn-generate" id="btnGenerate" onclick="generateBriefing()">
+    <span class="btn-icon">📰</span>
+    Générer mon briefing du jour
+  </button>
+</div>
+
+<div class="loading-zone" id="loadingZone">
+  <div class="spinner"></div>
+  <div class="loading-text">Compilation de l'actualité en cours…</div>
+</div>
+
+<div class="error-box" id="errorBox"></div>
+
+<div id="briefing"></div>
+
+<footer id="footerZone" style="display:none">
+  Généré par IA · Sources mondiales · <span id="genTime"></span>
+</footer>
+
+<script>
+// ── Date display ──
+const DAYS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function formatDate(d) {
+  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+const now = new Date();
+document.getElementById('headerDate').textContent = formatDate(now);
+
+// Auto-load detection (launched from Raccourcis iOS = param ?auto=1)
+const params = new URLSearchParams(location.search);
+if (params.get('auto') === '1') {
+  document.getElementById('autoBanner').classList.add('visible');
+  window.addEventListener('DOMContentLoaded', () => setTimeout(generateBriefing, 800));
+}
+
+// ── Briefing generation ──
+async function generateBriefing() {
+  const btn = document.getElementById('btnGenerate');
+  btn.disabled = true;
+  document.getElementById('genZone').style.display = 'none';
+  document.getElementById('loadingZone').classList.add('visible');
+  document.getElementById('errorBox').classList.remove('visible');
+  document.getElementById('briefing').classList.remove('visible');
+
+  const today = formatDate(now);
+  const prompt = `Tu es un journaliste expert. Nous sommes le ${today}.
+Génère un briefing matinal structuré en JSON uniquement (pas de markdown, pas de texte autour).
+
+Format JSON strict :
+{
+  "monde": [
+    {"titre": "...", "resume": "...", "tag": "..."},
+    {"titre": "...", "resume": "...", "tag": "..."},
+    {"titre": "...", "resume": "...", "tag": "..."},
+    {"titre": "...", "resume": "...", "tag": "..."}
+  ],
+  "france": [
+    {"titre": "...", "resume": "...", "tag": "..."},
+    {"titre": "...", "resume": "...", "tag": "..."},
+    {"titre": "...", "resume": "...", "tag": "..."}
+  ],
+  "tech": [
+    {"titre": "...", "resume": "...", "tag": "..."},
+    {"titre": "...", "resume": "...", "tag": "..."},
+    {"titre": "...", "resume": "...", "tag": "..."},
+    {"titre": "...", "resume": "...", "tag": "..."}
+  ]
+}
+
+Règles :
+- "titre" : titre accrocheur de l'info (max 80 chars)
+- "resume" : 1-2 phrases de contexte et d'analyse (max 160 chars)
+- "tag" : 1-2 mots clés (ex: "Diplomatie", "Économie", "IA", "Conflit", "Politique", "Santé"...)
+- Actualités récentes, importantes, variées
+- Monde : géopolitique, économie mondiale, conflits, diplomatie
+- France : politique intérieure, économie, social, société
+- Tech : IA, cybersécurité, startups, hardware, big tech, innovations
+Réponds UNIQUEMENT avec le JSON, sans backticks ni explication.`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        tools: [{ type: "web_search_20250305", name: "web_search" }],
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    // Extract JSON from response
+    let jsonText = '';
+    for (const block of data.content) {
+      if (block.type === 'text') jsonText += block.text;
+    }
+
+    // Clean potential markdown fences
+    jsonText = jsonText.replace(/```json|```/g, '').trim();
+
+    let briefing;
+    try {
+      briefing = JSON.parse(jsonText);
+    } catch(e) {
+      // Try to extract JSON object from text
+      const match = jsonText.match(/\{[\s\S]*\}/);
+      if (match) briefing = JSON.parse(match[0]);
+      else throw new Error("Impossible de parser la réponse JSON");
+    }
+
+    renderBriefing(briefing);
+
+  } catch(err) {
+    document.getElementById('loadingZone').classList.remove('visible');
+    document.getElementById('genZone').style.display = 'block';
+    btn.disabled = false;
+    const box = document.getElementById('errorBox');
+    box.textContent = `⚠️ Erreur : ${err.message}. Vérifie ta connexion et réessaie.`;
+    box.classList.add('visible');
+  }
+}
+
+function renderBriefing(data) {
+  document.getElementById('loadingZone').classList.remove('visible');
+
+  const sections = [
+    { key: 'monde',  cls: 'world',  icon: '🌍', iconCls: 'icon-world',  label: 'Actualité internationale', sublabel: 'MONDE' },
+    { key: 'france', cls: 'france', icon: '🇫🇷', iconCls: 'icon-france', label: 'Actualité française',         sublabel: 'FRANCE' },
+    { key: 'tech',   cls: 'tech',   icon: '💻', iconCls: 'icon-tech',   label: 'High-technologie',           sublabel: 'TECH' },
+  ];
+
+  let html = '';
+  for (const s of sections) {
+    const items = data[s.key] || [];
+    html += `
+      <div class="section-header">
+        <div class="section-icon ${s.iconCls}">${s.icon}</div>
+        <div>
+          <div class="section-label">${s.sublabel}</div>
+          <div class="section-title">${s.label}</div>
+        </div>
+      </div>
+      <div class="news-list ${s.cls}">
+        ${items.map(item => `
+          <div class="news-item">
+            <div class="news-headline">${escHtml(item.titre)}</div>
+            <div class="news-summary">${escHtml(item.resume)}</div>
+            <span class="news-tag">${escHtml(item.tag)}</span>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  const briefingEl = document.getElementById('briefing');
+  briefingEl.innerHTML = html;
+  briefingEl.classList.add('visible');
+
+  const footer = document.getElementById('footerZone');
+  footer.style.display = 'block';
+  document.getElementById('genTime').textContent =
+    `${now.getHours()}h${String(now.getMinutes()).padStart(2,'0')}`;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
