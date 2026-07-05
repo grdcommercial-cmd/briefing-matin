@@ -11,7 +11,6 @@
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 
-  /* SETUP */
   #setupScreen{display:none;min-height:100vh;background:var(--ink);color:var(--paper);flex-direction:column;align-items:center;justify-content:center;padding:40px 22px;text-align:center}
   #setupScreen.visible{display:flex}
   .setup-logo{font-size:46px;margin-bottom:14px}
@@ -25,12 +24,11 @@
   .setup-toggle{display:flex;align-items:center;gap:7px;margin-top:9px;cursor:pointer;font-size:11px;color:rgba(245,240,232,.4)}
   .setup-note{font-size:11px;color:rgba(245,240,232,.35);line-height:1.6;margin-top:10px}
   .setup-note a{color:var(--gold);text-decoration:none}
-  .btn-setup{width:100%;max-width:380px;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+  .btn-setup{width:100%;max-width:380px;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
   .btn-setup:active{opacity:.8}
   .setup-error{margin-top:10px;font-size:12px;color:#f5a090;text-align:center;display:none}
   .setup-error.visible{display:block}
 
-  /* MAIN */
   #mainApp{display:none}
   #mainApp.visible{display:block}
   header{background:var(--ink);color:var(--paper);padding:28px 20px 20px;text-align:center;position:relative;overflow:hidden}
@@ -49,14 +47,12 @@
   .btn-generate:active{opacity:.8}
   .btn-generate:disabled{opacity:.5;cursor:not-allowed}
 
-  .loading-zone{display:none;padding:32px 20px;text-align:center}
+  .loading-zone{display:none;padding:36px 20px;text-align:center}
   .loading-zone.visible{display:block}
-  .spinner{width:36px;height:36px;border:2px solid var(--rule);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+  .spinner{width:36px;height:36px;border:2px solid var(--rule);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 18px}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .loading-steps{display:flex;flex-direction:column;gap:8px}
-  .lstep{font-size:12px;color:rgba(122,114,101,.45);display:flex;align-items:center;gap:8px;justify-content:center;transition:color .3s}
-  .lstep.active{color:var(--gold);font-weight:500}
-  .lstep.done{color:#6abf6a}
+  .loading-msg{font-family:'Playfair Display',serif;font-size:14px;color:var(--muted);font-style:italic;margin-bottom:6px}
+  .loading-sub{font-size:11px;color:rgba(122,114,101,.6)}
 
   #briefing{display:none;padding:0 0 40px;animation:fadeIn .6s ease forwards}
   #briefing.visible{display:block}
@@ -92,28 +88,26 @@
 
   .auto-banner{background:#f0f7f0;border-bottom:1px solid #c8e6c9;padding:10px 20px;font-size:12px;color:#2d6a2d;text-align:center;display:none}
   .auto-banner.visible{display:block}
+
+  .ws-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(100,200,100,.12);border:1px solid rgba(100,200,100,.3);border-radius:20px;padding:3px 10px;font-size:10px;color:#4a9a4a;margin:8px auto 0;width:fit-content}
 </style>
 </head>
 <body>
 
-<!-- SETUP -->
 <div id="setupScreen">
   <div class="setup-logo">🗞️</div>
   <div class="setup-title">Le Briefing</div>
-  <div class="setup-subtitle">Une seule clé suffit.<br>Les actualités arrivent directement depuis les flux RSS des grands médias français.</div>
-
+  <div class="setup-subtitle">Actualités du jour recherchées en temps réel par Claude sur le web.<br>Une seule clé suffit.</div>
   <div class="setup-card">
     <label class="setup-label">Clé API Anthropic</label>
     <input type="password" id="keyAnt" class="setup-input" placeholder="sk-ant-api03-…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-    <label class="setup-toggle"><input type="checkbox" onchange="toggleViz('keyAnt',this)"> &nbsp;Afficher la clé</label>
-    <div class="setup-note">Obtiens ta clé sur <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a><br>Commence par <strong>sk-ant-</strong> · Stockée uniquement sur cet appareil</div>
+    <label class="setup-toggle"><input type="checkbox" onchange="toggleViz(this)"> &nbsp;Afficher la clé</label>
+    <div class="setup-note">Sur <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> → API Keys → Create Key<br>Stockée uniquement sur cet appareil · Commence par <strong>sk-ant-</strong></div>
   </div>
-
   <button class="btn-setup" onclick="saveKey()">Démarrer →</button>
   <div class="setup-error" id="setupError"></div>
 </div>
 
-<!-- APP -->
 <div id="mainApp">
   <header>
     <div class="header-eyebrow">Édition quotidienne</div>
@@ -134,22 +128,20 @@
     <button class="btn-generate" id="btnGenerate" onclick="generateBriefing()">
       <span>📰</span> Générer mon briefing du jour
     </button>
+    <div class="ws-badge">🔍 Recherche web en temps réel</div>
   </div>
 
   <div class="loading-zone" id="loadingZone">
     <div class="spinner"></div>
-    <div class="loading-steps">
-      <div class="lstep" id="ls1">📡 Lecture des flux RSS en direct…</div>
-      <div class="lstep" id="ls2">🤖 Synthèse par Claude…</div>
-      <div class="lstep" id="ls3">📰 Mise en forme du briefing…</div>
-    </div>
+    <div class="loading-msg">Recherche des dernières actualités…</div>
+    <div class="loading-sub">Claude consulte le web en direct · ~30 secondes</div>
   </div>
 
   <div class="error-box" id="errorBox"></div>
   <div id="briefing"></div>
 
   <footer id="footerZone" style="display:none">
-    Sources : Le Monde · France Info · 01net · <span id="genTime"></span>
+    Actualités recherchées en direct · Claude web search · <span id="genTime"></span>
     &nbsp;·&nbsp;<a href="#" onclick="resetKey()">Paramètres</a>
   </footer>
 </div>
@@ -159,28 +151,8 @@ const K_ANT  = 'bm_ant_key';
 const DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 
-// rss2json.com : convertit n'importe quel flux RSS en JSON avec CORS ouvert, gratuit
-const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
-
-// Flux RSS fiables de grands médias français — chacun accessible sans clé
-const RSS_FEEDS = {
-  monde: [
-    'https://www.lemonde.fr/rss/une.xml',           // Le Monde - Une
-    'https://www.rfi.fr/fr/rss',                    // RFI monde
-  ],
-  france: [
-    'https://www.francetvinfo.fr/france.rss',       // France Info - France
-    'https://www.liberation.fr/arc/outboundfeeds/rss/', // Libération
-  ],
-  tech: [
-    'https://www.01net.com/feed/',                  // 01net
-    'https://www.numerama.com/feed/',               // Numerama
-  ]
-};
-
 function fmtDate(d){ return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function stripHtml(s){ return String(s||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim(); }
 
 function init(){
   const ant = localStorage.getItem(K_ANT);
@@ -188,7 +160,7 @@ function init(){
   else document.getElementById('setupScreen').classList.add('visible');
 }
 
-function toggleViz(id,cb){ document.getElementById(id).type = cb.checked ? 'text' : 'password'; }
+function toggleViz(cb){ document.getElementById('keyAnt').type = cb.checked ? 'text' : 'password'; }
 
 function saveKey(){
   const ant = document.getElementById('keyAnt').value.trim();
@@ -213,48 +185,7 @@ function showApp(){
 }
 
 function resetKey(){
-  if(confirm('Réinitialiser la clé API ?')){
-    localStorage.removeItem(K_ANT);
-    location.reload();
-  }
-}
-
-function setStep(n){
-  ['ls1','ls2','ls3'].forEach((id,i)=>{
-    document.getElementById(id).className='lstep'+(i+1<n?' done':i+1===n?' active':'');
-  });
-}
-
-// Récupère un flux RSS via rss2json (CORS garanti)
-async function fetchRSS(url){
-  try{
-    const r = await fetch(`${RSS2JSON}${encodeURIComponent(url)}&count=8`);
-    if(!r.ok) return [];
-    const d = await r.json();
-    if(d.status !== 'ok') return [];
-    return (d.items||[]).map(item=>({
-      title: stripHtml(item.title),
-      desc:  stripHtml(item.description||item.content||'').slice(0,200),
-      source: d.feed?.title || new URL(url).hostname
-    }));
-  } catch(e){ return []; }
-}
-
-// Agrège plusieurs flux pour une catégorie
-async function fetchCategory(feeds){
-  const all = await Promise.all(feeds.map(fetchRSS));
-  // Mélange et déduplique par titre
-  const seen = new Set();
-  const items = [];
-  for(const arr of all){
-    for(const item of arr){
-      if(!seen.has(item.title) && item.title.length > 5){
-        seen.add(item.title);
-        items.push(item);
-      }
-    }
-  }
-  return items.slice(0, 10);
+  if(confirm('Réinitialiser la clé API ?')){ localStorage.removeItem(K_ANT); location.reload(); }
 }
 
 async function generateBriefing(){
@@ -270,86 +201,89 @@ async function generateBriefing(){
 
   const now   = new Date();
   const today = fmtDate(now);
+  const dateISO = now.toISOString().split('T')[0];
 
-  try{
-    // Étape 1 — RSS
-    setStep(1);
-    const [mondeItems, franceItems, techItems] = await Promise.all([
-      fetchCategory(RSS_FEEDS.monde),
-      fetchCategory(RSS_FEEDS.france),
-      fetchCategory(RSS_FEEDS.tech),
-    ]);
+  // Prompt en deux temps :
+  // 1. Claude cherche les actus sur le web (tool use web_search)
+  // 2. Claude formate en JSON
+  // On utilise max_tokens élevé pour laisser la place aux tool_use turns
+  const prompt = `Nous sommes le ${today} (${dateISO}).
 
-    const total = mondeItems.length + franceItems.length + techItems.length;
-    if(total === 0) throw new Error("Impossible de lire les flux RSS. Vérifie ta connexion internet.");
+Tu dois générer un briefing matinal d'actualité en français.
+Utilise tes capacités de recherche web pour trouver LES VRAIES actualités du jour ou d'hier.
 
-    const fmt = items => items.length > 0
-      ? items.map(i=>`- ${i.title}${i.desc?' | '+i.desc:''} [${i.source}]`).join('\n')
-      : '(aucun article disponible)';
+Cherche :
+1. Les principales actualités INTERNATIONALES du jour (géopolitique, conflits, diplomatie, économie mondiale)
+2. Les principales actualités FRANÇAISES du jour (politique, société, économie)
+3. Les principales actualités HIGH-TECH du jour (IA, cybersécurité, big tech, innovations)
 
-    // Étape 2 — Claude
-    setStep(2);
-    const prompt = `Tu es un journaliste expert. Nous sommes le ${today}.
-Voici les dernières actualités lues en direct depuis les flux RSS des grands médias français :
+Après ta recherche, réponds UNIQUEMENT avec un objet JSON valide sans markdown ni backticks :
 
-=== ACTUALITÉ INTERNATIONALE ===
-${fmt(mondeItems)}
-
-=== ACTUALITÉ FRANÇAISE ===
-${fmt(franceItems)}
-
-=== HIGH-TECHNOLOGIE ===
-${fmt(techItems)}
-
-À partir de ces actualités RÉELLES et RÉCENTES, génère un briefing structuré.
-Réponds UNIQUEMENT avec un objet JSON valide, sans markdown ni backticks.
-
-Format exact :
 {"monde":[{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."}],"france":[{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."}],"tech":[{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."}]}
 
 Règles :
-- Sélectionne les 3 plus importantes par catégorie parmi celles fournies
-- titre : reformulé clairement et de façon accrocheuse, max 80 chars
-- resume : 1-2 phrases de contexte ou d'analyse fondées sur l'article, max 180 chars
-- tag : 1-2 mots clés (Diplomatie, Économie, IA, Conflit, Politique, Santé, Cyber, Énergie…)
-- source : nom du média source
-- N'invente AUCUNE information, utilise uniquement ce qui est fourni ci-dessus`;
+- 3 actualités par catégorie, les plus importantes
+- titre : accrocheur, max 80 chars
+- resume : 1-2 phrases de contexte réelles, max 180 chars  
+- tag : 1-2 mots clés
+- source : nom du média où tu as trouvé l'info
+- Uniquement des faits réels trouvés sur le web, datant d'aujourd'hui ou d'hier`;
 
-    const resp = await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
+  try{
+    // Appel avec web_search tool activé
+    const body = {
+      model: "claude-sonnet-4-6",
+      max_tokens: 4000,
+      tools: [{
+        type: "web_search_20250305",
+        name: "web_search",
+        max_uses: 6
+      }],
+      messages: [{ role:"user", content: prompt }]
+    };
+
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
       headers:{
         "Content-Type":"application/json",
-        "x-api-key":antKey,
+        "x-api-key": antKey,
         "anthropic-version":"2023-06-01",
         "anthropic-dangerous-direct-browser-access":"true"
       },
-      body:JSON.stringify({
-        model:"claude-sonnet-4-6",
-        max_tokens:1500,
-        messages:[{role:"user",content:prompt}]
-      })
+      body: JSON.stringify(body)
     });
 
     if(!resp.ok){
       const e = await resp.json().catch(()=>({}));
       if(resp.status===401) localStorage.removeItem(K_ANT);
-      throw new Error(`Anthropic : ${e?.error?.message||'HTTP '+resp.status}`);
+      // Si web_search non disponible, fallback sans tool
+      if(resp.status===400 && e?.error?.message?.includes('web_search')){
+        return generateFallback(antKey, now, today);
+      }
+      throw new Error(`Anthropic : ${e?.error?.message || 'HTTP '+resp.status}`);
     }
 
     const data = await resp.json();
-    let jsonText = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+
+    // Extraire le texte de la dernière réponse (après les tool_use)
+    let jsonText = '';
+    for(const block of (data.content||[])){
+      if(block.type === 'text') jsonText += block.text;
+    }
+
+    // Si stop_reason = tool_use, il faut continuer la conversation
+    if(data.stop_reason === 'tool_use'){
+      jsonText = await continueWithTools(antKey, data, prompt, body.tools);
+    }
+
     jsonText = jsonText.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
 
-    // Étape 3 — rendu
-    setStep(3);
-    await new Promise(r=>setTimeout(r,300));
-
     let briefing;
-    try{ briefing=JSON.parse(jsonText); }
+    try{ briefing = JSON.parse(jsonText); }
     catch(e){
-      const m=jsonText.match(/\{[\s\S]*\}/);
-      if(m) briefing=JSON.parse(m[0]);
-      else throw new Error("Réponse JSON illisible. Réessaie.");
+      const m = jsonText.match(/\{[\s\S]*\}/);
+      if(m) briefing = JSON.parse(m[0]);
+      else throw new Error("Réponse illisible. Réessaie.");
     }
 
     renderBriefing(briefing, now);
@@ -358,10 +292,87 @@ Règles :
     document.getElementById('loadingZone').classList.remove('visible');
     document.getElementById('genZone').style.display='block';
     btn.disabled=false;
-    const box=document.getElementById('errorBox');
-    box.innerHTML=`⚠️ <strong>Erreur :</strong> ${esc(err.message)}`;
-    box.classList.add('visible');
+    document.getElementById('errorBox').innerHTML=`⚠️ <strong>Erreur :</strong> ${esc(err.message)}`;
+    document.getElementById('errorBox').classList.add('visible');
   }
+}
+
+// Gère la boucle tool_use → tool_result → réponse finale
+async function continueWithTools(antKey, firstResponse, originalPrompt, tools){
+  const messages = [
+    { role:"user", content: originalPrompt },
+    { role:"assistant", content: firstResponse.content }
+  ];
+
+  // Construire les tool_result pour chaque tool_use
+  const toolResults = [];
+  for(const block of firstResponse.content){
+    if(block.type === 'tool_use'){
+      toolResults.push({
+        type: "tool_result",
+        tool_use_id: block.id,
+        content: "Recherche effectuée."
+      });
+    }
+  }
+  messages.push({ role:"user", content: toolResults });
+
+  // Appel final pour obtenir le JSON
+  const resp = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "x-api-key": antKey,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body: JSON.stringify({
+      model:"claude-sonnet-4-6",
+      max_tokens:2000,
+      tools: tools,
+      messages: messages
+    })
+  });
+
+  const data = await resp.json();
+  return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+}
+
+// Fallback sans web_search si le plan API ne le supporte pas
+async function generateFallback(antKey, now, today){
+  const prompt = `Tu es un journaliste expert. Nous sommes le ${today}.
+Génère un briefing matinal avec les actualités les plus récentes que tu connais.
+Précise dans chaque résumé si l'info est de cette semaine ou plus ancienne.
+Réponds UNIQUEMENT avec un JSON valide sans markdown :
+{"monde":[{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."}],"france":[{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."}],"tech":[{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."},{"titre":"...","resume":"...","tag":"...","source":"..."}]}`;
+
+  const resp = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "x-api-key": antKey,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body: JSON.stringify({
+      model:"claude-sonnet-4-6",
+      max_tokens:1500,
+      messages:[{role:"user",content:prompt}]
+    })
+  });
+
+  if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const data = await resp.json();
+  let jsonText = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  jsonText = jsonText.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+
+  let briefing;
+  try{ briefing = JSON.parse(jsonText); }
+  catch(e){ const m=jsonText.match(/\{[\s\S]*\}/); if(m) briefing=JSON.parse(m[0]); else throw new Error("JSON illisible"); }
+
+  // Ajoute un bandeau avertissant que la recherche web n'est pas disponible
+  document.getElementById('footerZone').innerHTML += ' · <span style="color:#c8341a">⚠️ Mode hors ligne — activer web_search sur votre plan</span>';
+  renderBriefing(briefing, now);
 }
 
 function renderBriefing(data, now){
@@ -392,11 +403,9 @@ function renderBriefing(data, now){
       </div>`;
   }
   const el=document.getElementById('briefing');
-  el.innerHTML=html;
-  el.classList.add('visible');
+  el.innerHTML=html; el.classList.add('visible');
   document.getElementById('footerZone').style.display='block';
-  document.getElementById('genTime').textContent=
-    `${now.getHours()}h${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('genTime').textContent=`${now.getHours()}h${String(now.getMinutes()).padStart(2,'0')}`;
 }
 
 init();
